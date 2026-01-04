@@ -45,18 +45,58 @@ class Ship:
 
 class Battleship:
     def __init__(self, ships: tuple) -> None:
-        self.corabels = []
-        for ship in ships:
-            self.corabels.append(Ship(ship[0], ship[1], True))
+        self.ships = [Ship(ship[0], ship[1]) for ship in ships]
+
         self.fields = {}
-        for ship in self.corabels:
+        for ship in self.ships:
             for deck in ship.decks:
                 self.fields[(deck.row, deck.column)] = ship
+
+        self._validate_field()
+
+    def print_field(self) -> None:
+        for row in range(10):
+            row_str = ""
+            for col in range(10):
+                if (row, col) in self.fields:
+                    deck = self.fields[(row, col)].get_deck(row, col)
+                    ship = self.fields[(row, col)]
+                    if deck.is_alive:
+                        row_str += "□ "
+                    elif ship.is_drowned:
+                        row_str += "x "
+                    else:
+                        row_str += "* "
+                else:
+                    row_str += "~ "
+            print(row_str)
+
+    def _validate_field(self) -> None:
+        lengths = [len(ship.decks) for ship in self.ships]
+        if (lengths.count(1) != 4 or lengths.count(2) != 3
+                or lengths.count(3) != 2 or lengths.count(4) != 1):
+            raise ValueError("Invalid number of ships by size")
+
+        field = [[0] * 10 for _ in range(10)]
+
+        for ship in self.ships:
+            for deck in ship.decks:
+                row, col = deck.row, deck.column
+                for dr in [-1, 0, 1]:
+                    for dc in [-1, 0, 1]:
+                        nr, nc = row + dr, col + dc
+                        if 0 <= nr < 10 and 0 <= nc < 10:
+                            if field[nr][nc] == 1:
+                                if ((nr, nc) not in
+                                        [
+                                            (d.row, d.column)
+                                            for d in ship.decks]):
+                                    raise ValueError("Ships are too close")
+                field[row][col] = 1
 
     def fire(self, location: tuple) -> str:
         if location in self.fields:
             ship = self.fields[location]
             result = ship.fire(location[0], location[1])
             return result
-        else:
-            return "Miss!"
+        return "Miss!"
