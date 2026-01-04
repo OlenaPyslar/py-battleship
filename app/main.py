@@ -10,8 +10,6 @@ class Ship:
                  start: tuple,
                  end: tuple,
                  is_drowned: bool = False) -> None:
-        self.start = start
-        self.end = end
         self.is_drowned = is_drowned
         self.decks = []
         if start[0] == end[0]:
@@ -38,8 +36,7 @@ class Ship:
             if all(not deck.is_alive for deck in self.decks):
                 self.is_drowned = True
                 return "Sunk!"
-            else:
-                return "Hit!"
+            return "Hit!"
         return "Miss!"
 
 
@@ -73,6 +70,9 @@ class Battleship:
 
     def _validate_field(self) -> None:
         lengths = [len(ship.decks) for ship in self.ships]
+        if len(self.ships) != 10:
+            raise ValueError("There must be exactly 10 ships on the board")
+
         if (lengths.count(1) != 4 or lengths.count(2) != 3
                 or lengths.count(3) != 2 or lengths.count(4) != 1):
             raise ValueError("Invalid number of ships by size")
